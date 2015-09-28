@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 project(libnbt++
     VERSION 2.3)
 
@@ -43,7 +43,7 @@ target_include_directories(nbt++ PUBLIC include ${CMAKE_CURRENT_BINARY_DIR})
 if(NBT_USE_ZLIB)
     target_link_libraries(nbt++ z)
 endif()
-target_compile_options(nbt++ PUBLIC -std=c++11)
+set_property(TARGET nbt++ PROPERTY CXX_STANDARD 11)
 generate_export_header(nbt++ BASE_NAME nbt)
 
 if(${BUILD_SHARED_LIBS})
