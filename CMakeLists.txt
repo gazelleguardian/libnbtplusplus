@@ -7,6 +7,12 @@ option(NBT_BUILD_SHARED "Build shared libraries" OFF)
 option(NBT_USE_ZLIB "Build additional zlib stream functionality" ON)
 option(NBT_BUILD_TESTS "Build the unit tests. Requires CxxTest." ON)
 
+if(NBT_NAME)
+	message("Using override nbt++ name: ${NBT_NAME}")
+else()
+	set(NBT_NAME nbt++)
+endif()
+
 # hide this from includers.
 set(BUILD_SHARED_LIBS ${NBT_BUILD_SHARED})
 
@@ -37,17 +43,17 @@ if(NBT_USE_ZLIB)
     add_definitions("-DNBT_HAVE_ZLIB")
 endif()
 
-add_library(nbt++ ${NBT_SOURCES})
-target_include_directories(nbt++ PUBLIC include ${CMAKE_CURRENT_BINARY_DIR})
+add_library(${NBT_NAME} ${NBT_SOURCES})
+target_include_directories(${NBT_NAME} PUBLIC include ${CMAKE_CURRENT_BINARY_DIR})
 
 if(NBT_USE_ZLIB)
-    target_link_libraries(nbt++ z)
+    target_link_libraries(${NBT_NAME} z)
 endif()
-set_property(TARGET nbt++ PROPERTY CXX_STANDARD 11)
-generate_export_header(nbt++ BASE_NAME nbt)
+set_property(TARGET ${NBT_NAME} PROPERTY CXX_STANDARD 11)
+generate_export_header(${NBT_NAME} BASE_NAME nbt)
 
 if(${BUILD_SHARED_LIBS})
-    set_target_properties(nbt++ PROPERTIES
+    set_target_properties(${NBT_NAME} PROPERTIES
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN 1)
 endif()
