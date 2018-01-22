@@ -46,6 +46,11 @@ endif()
 add_library(${NBT_NAME} ${NBT_SOURCES})
 target_include_directories(${NBT_NAME} PUBLIC include ${CMAKE_CURRENT_BINARY_DIR})
 
+# Install it
+if(DEFINED NBT_DEST_DIR)
+	install(TARGETS ${NBT_NAME} DESTINATION ${NBT_DEST_DIR})
+endif()
+
 if(NBT_USE_ZLIB)
     target_link_libraries(${NBT_NAME} z)
 endif()
