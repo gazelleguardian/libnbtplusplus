@@ -29,6 +29,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "data.h"
+
 using namespace nbt;
 
 class read_test : public CxxTest::TestSuite
@@ -226,7 +228,9 @@ public:
         Instead, we assume that reading already works correctly and re-read the
         written tag.
         Smaller-grained tests are already done above. */
-        std::ifstream file("bigtest_uncompr", std::ios::binary);
+        std::string input(__binary_bigtest_uncompr_start, __binary_bigtest_uncompr_end);
+        std::istringstream file(input, std::ios::binary);
+
         const auto orig_pair = io::read_compound(file);
         std::stringstream sstr;
 

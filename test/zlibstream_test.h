@@ -23,6 +23,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "data.h"
+
 using namespace zlib;
 
 class zlibstream_test : public CxxTest::TestSuite
@@ -33,7 +35,8 @@ private:
 public:
     zlibstream_test()
     {
-        std::ifstream bigtest_f("bigtest_uncompr", std::ios::binary);
+        std::string input(__binary_bigtest_uncompr_start, __binary_bigtest_uncompr_end);
+        std::istringstream bigtest_f(input, std::ios::binary);
         std::stringbuf bigtest_b;
         bigtest_f >> &bigtest_b;
         bigtest = bigtest_b.str();
@@ -43,7 +46,8 @@ public:
 
     void test_inflate_gzip()
     {
-        std::ifstream gzip_in("bigtest.nbt", std::ios::binary);
+        std::string input(__binary_bigtest_nbt_start, __binary_bigtest_nbt_end);
+        std::istringstream gzip_in(input, std::ios::binary);
         TS_ASSERT(gzip_in);
 
         std::stringbuf data;
@@ -93,7 +97,8 @@ public:
 
     void test_inflate_zlib()
     {
-        std::ifstream zlib_in("bigtest.zlib", std::ios::binary);
+        std::string input(__binary_bigtest_zlib_start, __binary_bigtest_zlib_end);
+        std::istringstream zlib_in(input, std::ios::binary);
         TS_ASSERT(zlib_in);
 
         std::stringbuf data;
@@ -109,34 +114,35 @@ public:
 
     void test_inflate_corrupt()
     {
-        std::ifstream gzip_in("bigtest_corrupt.nbt", std::ios::binary);
+        std::string input(__binary_bigtest_corrupt_nbt_start, __binary_bigtest_corrupt_nbt_end);
+        std::istringstream gzip_in(input, std::ios::binary);
         TS_ASSERT(gzip_in);
 
         std::vector<char> buf(bigtest.size());
-        {
-            izlibstream igzs(gzip_in);
-            igzs.exceptions(std::ios::failbit | std::ios::badbit);
-            TS_ASSERT_THROWS(igzs.read(buf.data(), buf.size()), zlib_error);
-            TS_ASSERT(igzs.bad());
-        }
+        izlibstream igzs(gzip_in);
+        igzs.exceptions(std::ios::failbit | std::ios::badbit);
+        TS_ASSERT_THROWS(igzs.read(buf.data(), buf.size()), zlib_error);
+        TS_ASSERT(igzs.bad());
+    }
 
-        gzip_in.close();
-        gzip_in.clear();
-        gzip_in.open("bigtest_eof.nbt", std::ios::binary);
+    void test_inflate_eof()
+    {
+        std::string input(__binary_bigtest_eof_nbt_start, __binary_bigtest_eof_nbt_end);
+        std::istringstream gzip_in(input, std::ios::binary);
         TS_ASSERT(gzip_in);
 
-        {
-            izlibstream igzs(gzip_in);
-            igzs.exceptions(std::ios::failbit | std::ios::badbit);
-            TS_ASSERT_THROWS(igzs.read(buf.data(), buf.size()), zlib_error);
-            TS_ASSERT(igzs.bad());
-        }
+        std::vector<char> buf(bigtest.size());
+        izlibstream igzs(gzip_in);
+        igzs.exceptions(std::ios::failbit | std::ios::badbit);
+        TS_ASSERT_THROWS(igzs.read(buf.data(), buf.size()), zlib_error);
+        TS_ASSERT(igzs.bad());
     }
 
     void test_inflate_trailing()
     {
         //This file contains additional uncompressed data after the zlib-compressed data
-        std::ifstream file("trailing_data.zlib", std::ios::binary);
+        std::string input(__binary_trailing_data_zlib_start, __binary_trailing_data_zlib_end);
+        std::istringstream file(input, std::ios::binary);
         izlibstream izls(file, 32);
         TS_ASSERT(file && izls);
 

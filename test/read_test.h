@@ -29,6 +29,8 @@
 
 using namespace nbt;
 
+#include "data.h"
+
 class read_test : public CxxTest::TestSuite
 {
 public:
@@ -66,8 +68,8 @@ public:
         TS_ASSERT(!is);
         is.clear();
 
-        //Test for invalid tag type 12
-        is.str("\x0c");
+        //Test for invalid tag type 13
+        is.str("\x0d");
         TS_ASSERT_THROWS(reader.read_type(), io::input_error);
         TS_ASSERT(!is);
         is.clear();
@@ -143,8 +145,8 @@ public:
     void test_read_bigtest()
     {
         //Uses an extended variant of Notch's original bigtest file
-        std::ifstream file("bigtest_uncompr", std::ios::binary);
-        TS_ASSERT(file);
+        std::string input(__binary_bigtest_uncompr_start, __binary_bigtest_uncompr_end);
+        std::istringstream file(input, std::ios::binary);
 
         auto pair = nbt::io::read_compound(file);
         TS_ASSERT_EQUALS(pair.first, "Level");
@@ -154,8 +156,8 @@ public:
     void test_read_littletest()
     {
         //Same as bigtest, but little endian
-        std::ifstream file("littletest_uncompr", std::ios::binary);
-        TS_ASSERT(file);
+        std::string input(__binary_littletest_uncompr_start, __binary_littletest_uncompr_end);
+        std::istringstream file(input, std::ios::binary);
 
         auto pair = nbt::io::read_compound(file, endian::little);
         TS_ASSERT_EQUALS(pair.first, "Level");
@@ -163,34 +165,49 @@ public:
         verify_bigtest_structure(*pair.second);
     }
 
-    void test_read_errors()
+    void test_read_eof1()
     {
-        std::ifstream file;
+        std::string input(__binary_errortest_eof1_start, __binary_errortest_eof1_end);
+        std::istringstream file(input, std::ios::binary);
         nbt::io::stream_reader reader(file);
 
         //EOF within a tag_double payload
-        file.open("errortest_eof1", std::ios::binary);
         TS_ASSERT(file);
         TS_ASSERT_THROWS(reader.read_tag(), io::input_error);
         TS_ASSERT(!file);
+    }
+
+    void test_read_eof2()
+    {
+        std::string input(__binary_errortest_eof2_start, __binary_errortest_eof2_end);
+        std::istringstream file(input, std::ios::binary);
+        nbt::io::stream_reader reader(file);
 
         //EOF within a key in a compound
-        file.close();
-        file.open("errortest_eof2", std::ios::binary);
         TS_ASSERT(file);
         TS_ASSERT_THROWS(reader.read_tag(), io::input_error);
         TS_ASSERT(!file);
+    }
+
+    void test_read_errortest_noend()
+    {
+        std::string input(__binary_errortest_noend_start, __binary_errortest_noend_end);
+        std::istringstream file(input, std::ios::binary);
+        nbt::io::stream_reader reader(file);
 
         //Missing tag_end
-        file.close();
-        file.open("errortest_noend", std::ios::binary);
         TS_ASSERT(file);
         TS_ASSERT_THROWS(reader.read_tag(), io::input_error);
         TS_ASSERT(!file);
+    }
+
+    void test_read_errortest_neg_length()
+    {
+        std::string input(__binary_errortest_neg_length_start, __binary_errortest_neg_length_end);
+        std::istringstream file(input, std::ios::binary);
+        nbt::io::stream_reader reader(file);
 
         //Negative list length
-        file.close();
-        file.open("errortest_neg_length", std::ios::binary);
         TS_ASSERT(file);
         TS_ASSERT_THROWS(reader.read_tag(), io::input_error);
         TS_ASSERT(!file);
@@ -198,11 +215,11 @@ public:
 
     void test_read_misc()
     {
-        std::ifstream file;
+        std::string input(__binary_toplevel_string_start, __binary_toplevel_string_end);
+        std::istringstream file(input, std::ios::binary);
         nbt::io::stream_reader reader(file);
 
         //Toplevel tag other than compound
-        file.open("toplevel_string", std::ios::binary);
         TS_ASSERT(file);
         TS_ASSERT_THROWS(reader.read_compound(), io::input_error);
         TS_ASSERT(!file);
@@ -219,7 +236,8 @@ public:
     void test_read_gzip()
     {
 #ifdef NBT_HAVE_ZLIB
-        std::ifstream file("bigtest.nbt", std::ios::binary);
+        std::string input(__binary_bigtest_nbt_start, __binary_bigtest_nbt_end);
+        std::istringstream file(input, std::ios::binary);
         zlib::izlibstream igzs(file);
         TS_ASSERT(file && igzs);
 
